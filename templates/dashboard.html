@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<h1 style="margin-left:10%;margin-top:0px;">Welcome</h1>
+<section>
+    <div class="half">
+        <h2>Available levels</h2>
+        <p>Pick a level to play and try and complete it with the fewest lines of code!</p>
+        {% if num_levels == 0 %}
+            <p class="info">There are no levels available to play :(</p>   
+        {% else %}
+            <ul class="level_list">
+            {% for level in levels %}
+                <li>
+                    <p class="title">{{ level['name'] }}</p>
+                    <button onclick="window.location='/level/{{ level['id'] }}';">Play</button>
+                </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <div class="half">
+        <h2>Completed levels</h2>
+        {% if num_completed_levels == 0 %}
+            <p class="error">You haven't completed a level yet!</p>
+        {% else %}
+            <ul class="level_list">
+            {% for level in complete_levels %}
+                <li>
+                    <p class="title">{{ level['map_name'] }}</p>
+                    <p class="subtitle">Lines of code: {{ level['code_lines'] }}</p>
+                    <button onclick="window.location='/level/{{ level['map_id'] }}';">Replay</button>
+                </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+    
+    <div class="clear"></div>
+ 
+{% endblock %}
+{% block scripts %}
+<script>
+    function refresh_bindings(){
+
+    }
+</script>
+{% endblock %}
+

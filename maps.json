@@ -1,0 +1,28 @@
+{
+    "maps": [
+        {
+            "id": "1",
+            "name": "COMSC map 1",
+            "obstacles": [[3,5,0],[3,5,1],[3,5,2]],
+            "finish": [12,9,0],
+            "start": [1,1,0,90],
+            "size": [20,20],
+            "finish_items": [],
+            "items": [
+            ]
+        },
+        {
+            "id": "2",
+            "name": "COMSC map 2",
+            "obstacles": [[3,5,0],[3,5,1],[3,5,2]],
+            "finish": [12,9,0],
+            "start": [1,1,0,180],
+            "size": [20,20],
+            "finish_items": ["ball", "duck"],
+            "items": [
+                    { "name": "ball", "location":  [9,8,0] },
+                    { "name": "duck", "location":  [2,3,0] }
+            ]
+        }
+    ]
+}    

@@ -1,0 +1,181 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<h1 style="margin-left:10%;margin-top:0px;">Level {{level['id']}}: {{level['name']}}</h1>
+<section>
+    <div class="half">
+        <h2>Map</h2>
+        <div id="map"></div> 
+    </div>
+    <div class="half">
+        <div class="half">
+            <h2>Altimeter</h2>
+            <div id="altimeter"></div>
+        </div>
+        <div class="half">
+            <h2>Status</h2>
+            <div id="status"></div> <p id="status_label"></p>
+            <div class="clear"></div>
+            <hr />
+            <p>Position: (<span id="current_position"></span>)</p>
+            <p>Altitude: <span id="current_altitude"></span></p>
+            <p>Bearing: <span id="current_bearing"></span></p>
+            <p>Inventory:</p>
+            <ul id="current_inventory"></ul>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div>
+    <div class="half">
+        <h2>Enter your drone code below</h2>
+        <textarea class="drone_source">
+from cardiff_drone import Drone
+drone = Drone(level = {{level['id']}})
+
+# Enter your code here
+    </textarea>
+        <button id="run">Run code</button>
+        </div>
+    <div class="half">
+        <h2>Map information</h2>
+        <h3>Starting position</h3>
+        <p>The drone starts at position (<span id="drone_start"></span>) facing <span id="drone_start_angle"></span>.</p>
+        <h3>Finish position</h3>
+        <p>Get the drone to position (<span id="drone_finish"></span>) to finish.
+        <h3>Items available</h3>
+        <p>The following items are available for collection:</p>
+        <ul id="available_items"></ul>
+        <h3>Items needed to finish</h3>
+        <p>You need to collect the following items before finishing:</p>
+        <ul id="finish_items"></ul>    
+    </div>
+    <div class="clear"></div>
+</section>
+ 
+{% endblock %}
+{% block scripts %}
+<script>
+    var obstacles, items, finish_items, finish_tile, start_tile, map_size, drone, tile_width, tile_height;
+
+    function Drone(x,y,z,a){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.a = a;
+        this.inventory = [];
+        this.status = "green";
+        this.status_label = "Landed";
+    }
+
+    $(document).ready(function(){
+        get_map({{level['id']}});
+        $("#run").click(function(){
+            submit_code({{level['id']}});
+        });
+    });
+        
+    function refresh_ui(){
+        $("#drone_start").html(start_tile[0]+","+start_tile[1]+","+start_tile[2]);
+        $("#drone_start_angle").html(start_tile[3]+"&deg;  from North");
+        $("#drone_finish").html(finish_tile[0]+","+finish_tile[1]+","+finish_tile[2]);
+        for(var i = 0; i < items.length; i++){
+            var item = items[i];
+            $("#available_items").append('<li>'+item.name+' at position ('+item.location[0]+','+item.location[1]+","+item.location[2]+')</li>');
+        }
+        for(var i = 0; i < finish_items.length; i++){
+            var item = items[i];
+            $("#finish_items").append('<li>'+item.name+'</li>');
+        }
+        
+        tile_width = 100/map_size[0];
+        tile_height = 100/map_size[1];
+        for(var i = 0; i < map_size[0]; i++){
+            for(var j = 0; j < map_size[1];j++){
+                $("#map").append('<div data-x="'+(i+1)+'" data-y="'+(j+1)+'" class="tile" style="width:'+tile_width+'%;height:'+tile_height+'%;left:'+(tile_width*i)+'%;top:'+(tile_height*j)+'%;"></div');
+            }
+        }
+        for(var i = 1; i <= map_size[0]; i++){
+            $("#map").append('<div style="left:'+(tile_width*(i-1))+'%;" class="coord x">'+i+'</div>');
+        }
+        for(var i = 1; i <= map_size[1]; i++){
+            $("#map").append('<div style="top:'+(tile_height*(i-1))+'%;" class="coord y">'+i+'</div>');
+        }
+        
+        for(var i = 9; i >= 0; i--){
+            $("#altimeter").append('<div data-level="'+i+'" class="level" style="top:'+(9*(9-i))+'%;"><div class="measure">'+i+'</div></div>');
+        }
+
+        $("#map").append("<div id='drone'></div>");
+        draw_drone(); 
+    }
+
+    function draw_drone(){
+        $("#drone").css({"width":tile_width+'%','height':tile_height+'%','left':(tile_width*(drone.x-1))+'%','top':(tile_height*(drone.y-1))+'%'});
+        $("#altimeter .level").removeClass("selected");
+        $("#altimeter .level").each(function(){
+            if(parseInt($(this).attr("data-level")) == drone.z){
+                $(this).addClass("selected");
+            }
+        });
+        $("#current_position").html(drone.x+','+drone.y);
+        $("#current_altitude").html(drone.z);
+        $("#current_bearing").html(drone.a+'&deg; from North');
+        for(var i = 0; i < drone.inventory; i++){
+            $("#current_inventory").append('<li>'+drone.inventory[i]+'</li>');
+        }
+        $("#status").removeClass("green red").addClass(drone.status);
+        $("#status_label").html(drone.status_label);
+    }
+
+    function get_map(map_id){
+        $.get("/level/"+map_id+"/json", function(data){
+            data = JSON.parse(data);
+            console.log(data);
+            obstacles = data.obstacles
+            items = data.items;
+            finish_items = data.finish_items;
+            finish_tile = data.finish;
+            start_tile = data.start;
+            map_size = data.size;
+            drone = new Drone(start_tile[0],start_tile[1],start_tile[2],start_tile[3]);
+            refresh_ui();
+        });
+    }
+
+    function submit_code(map_id){
+        var postdata = {};
+        postdata.code = $(".drone_source").val();
+        $.post("/run_drone/"+map_id, postdata, function(data){
+            data = JSON.parse(data);
+            console.log(data);
+            if(data.error == true){
+                alert("Oops - there is an error in your Python code. Have a check through.");
+                return;
+            }
+            iterate_moves(data.result, 0);
+        });        
+    }
+
+    function iterate_moves(moves, move_count){
+        console.log("iterating "+move_count);
+        var move = moves[move_count];
+        if(move==null){return;}
+        setTimeout(function(){
+            drone.x = move[0];
+            drone.y = move[1];
+            drone.z = move[2];                
+            drone.a = move[3];
+            drone.status_label = move[4];
+            if(moves[4] == "Crashed"){
+                drone.status = "red";
+            }
+            else{
+                drone.status = "green";    
+            }
+            draw_drone();
+            iterate_moves(moves, move_count+1);
+        },500);
+    }
+
+</script>
+{% endblock %}
