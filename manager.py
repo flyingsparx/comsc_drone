@@ -43,7 +43,6 @@ def complete_level(map_id, map_name, code_lines):
         if c['map_id'] == map_id:
             session['levels_complete'].remove(c) 
     session['levels_complete'].append({'map_id':map_id,'map_name':map_name,'code_lines':code_lines})
-    print session['levels_complete']
 
 @app.route('/')
 def home():
