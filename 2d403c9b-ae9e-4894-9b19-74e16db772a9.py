@@ -1,0 +1,26 @@
+from cardiff_drone import Drone
+drone = Drone(level = 3)
+
+drone.takeoff()
+drone.move_forward()
+drone.move_forward()
+drone.turn_left()
+drone.move_forward()
+drone.land()
+drone.pick_up()
+drone.takeoff()
+for i in range(0,7):
+    drone.move_forward()
+drone.turn_right()
+for i in range(0,5):
+    drone.move_forward()
+drone.land()
+drone.pick_up()  
+drone.takeoff() 
+drone.turn_left()
+drone.move_forward()
+drone.move_forward()
+drone.move_forward()
+drone.turn_right()
+drone.move_forward()
+drone.land()

@@ -48,7 +48,7 @@ class Drone:
         if self.map['finish'][0] == self.x and self.map['finish'][1] == self.y and self.map['finish'][2] == self.z:
             finished = True
             for i in self.map['finish_items']:
-                 if i not in inventory:
+                 if i not in self.inventory:
                     finished = False
                     break
         if finished == True:
@@ -63,7 +63,17 @@ class Drone:
         elif self.z > 0:
             self.status = "Flying"
 
-        self.positions.append((self.x,self.y,self.z,self.a,self.status,self.inventory))        
+        new_invent = []
+        for i in self.inventory:
+            new_invent.append(i)
+        self.positions.append((self.x,self.y,self.z,self.a,self.status,new_invent))        
+
+    def pick_up(self):
+        for i in self.map['items']:
+            if i['location'][0] == self.x and i['location'][1] == self.y and i['location'][2] == self.z:
+                print "adding item..."
+                self.inventory.append(i['name'])
+                self.map['items'].remove(i)
 
     def takeoff(self):
         if self.crashed == False and self.finished == False:
@@ -104,11 +114,11 @@ class Drone:
     def move_forward(self):
         if self.can_move(): 
             if self.a == 0:
-                self.y+=1
+                self.y-=1
             if self.a == 90:
                 self.x+=1
             if self.a==180:
-                self.y-=1
+                self.y+=1
             if self.a == 270:
                 self.x-=1
             self.get_state()
@@ -116,11 +126,11 @@ class Drone:
     def move_backward(self):
         if self.can_move(): 
             if self.a == 0:
-                self.y-=1
+                self.y+=1
             if self.a == 90:
                 self.x-=1
             if self.a==180:
-                self.y+=1
+                self.y-=1
             if self.a == 270:
                 self.x+=1
             self.get_state()
@@ -130,11 +140,11 @@ class Drone:
             if self.a == 0:
                 self.x+=1
             if self.a == 90:
-                self.y-=1
+                self.y+=1
             if self.a==180:
                 self.x-=1
             if self.a == 270:
-                self.y+=1
+                self.y-=1
             self.get_state()
 
     def move_left(self):
@@ -142,9 +152,9 @@ class Drone:
             if self.a == 0:
                 self.x-=1
             if self.a == 90:
-                self.y+=1
+                self.y-=1
             if self.a==180:
                 self.x+=1
             if self.a == 270:
-                self.y-=1
+                self.y+=1
             self.get_state()

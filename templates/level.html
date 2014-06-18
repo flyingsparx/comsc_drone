@@ -120,10 +120,12 @@ drone = Drone(level = {{level['id']}})
         $("#current_position").html(drone.x+','+drone.y);
         $("#current_altitude").html(drone.z);
         $("#current_bearing").html(drone.a+'&deg; from North');
-        for(var i = 0; i < drone.inventory; i++){
+        console.log(drone.inventory);
+        $("#current_inventory").html('');
+        for(var i = 0; i < drone.inventory.length; i++){
             $("#current_inventory").append('<li>'+drone.inventory[i]+'</li>');
         }
-        $("#status").removeClass("green red").addClass(drone.status);
+        $("#status").removeClass("green").removeClass("red").addClass(drone.status);
         $("#status_label").html(drone.status_label);
     }
 
@@ -143,39 +145,61 @@ drone = Drone(level = {{level['id']}})
     }
 
     function submit_code(map_id){
+        $("#run").fadeOut();
         var postdata = {};
         postdata.code = $(".drone_source").val();
         $.post("/run_drone/"+map_id, postdata, function(data){
             data = JSON.parse(data);
             console.log(data);
             if(data.error == true){
+                $("#run").fadeIn();
                 alert("Oops - there is an error in your Python code. Have a check through.");
                 return;
             }
+            window.scrollTo(0,0);
             iterate_moves(data.result, 0);
-        });        
+        }).fail(function(){$("#run").fadeIn();});        
     }
 
     function iterate_moves(moves, move_count){
         console.log("iterating "+move_count);
         var move = moves[move_count];
-        if(move==null){return;}
+        if(move==null){$("#run").fadeIn();return;}
         setTimeout(function(){
             drone.x = move[0];
             drone.y = move[1];
             drone.z = move[2];                
             drone.a = move[3];
             drone.status_label = move[4];
-            if(moves[4] == "Crashed"){
+            if(move[4] == "Crashed"){
                 drone.status = "red";
             }
             else{
                 drone.status = "green";    
             }
+            drone.inventory = move[5];
             draw_drone();
             iterate_moves(moves, move_count+1);
         },500);
     }
+    
+    $(document).delegate('textarea', 'keydown', function(e) {
+      var keyCode = e.keyCode || e.which;
 
+      if (keyCode == 9) {
+        e.preventDefault();
+        var start = $(this).get(0).selectionStart;
+        var end = $(this).get(0).selectionEnd;
+
+        // set textarea value to: text before caret + tab + text after caret
+        $(this).val($(this).val().substring(0, start)
+                    + "\t"
+                    + $(this).val().substring(end));
+
+        // put caret at right position again
+        $(this).get(0).selectionStart =
+        $(this).get(0).selectionEnd = start + 1;
+      }
+    });
 </script>
 {% endblock %}

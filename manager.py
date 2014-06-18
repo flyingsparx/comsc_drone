@@ -39,6 +39,9 @@ def get_map(map_id):
     return m
 
 def complete_level(map_id, map_name, code_lines):
+    for c in session['levels_complete']:
+        if c['map_id'] == map_id:
+            session['levels_complete'].remove(c) 
     session['levels_complete'].append({'map_id':map_id,'map_name':map_name,'code_lines':code_lines})
     print session['levels_complete']
 
@@ -84,15 +87,11 @@ def run_drone(map_id):
             mod = __reload__(str(uniq))
         except:
             mod = __import__(str(uniq))
-        stats = mod.drone.get_stats()
-        positions = stats[0]
-        finished = stats[1]
-        crashed = stats[2]
-        print stats
-        if stats[-1][4] == "Finished":
+        moves = mod.drone.get_stats()
+        if moves[-1][4] == "Finished":
             print "completing..."
             complete_level(mod.drone.map['id'], mod.drone.map['name'], line_count)
-        obj['result'] = stats
+        obj['result'] = moves
         obj['error'] = False
         try:
             os.remove(str(uniq)+'.py')
