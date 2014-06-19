@@ -6,6 +6,7 @@
     <div class="half">
         <h2>Map</h2>
         <div id="map"></div> 
+        <p>Cell information: <span id="cell_info">&lt;No cell selected&gt;</span></p>
     </div>
     <div class="half">
         <div class="half">
@@ -30,7 +31,7 @@
         <h2>Enter your drone code below</h2>
         <textarea class="drone_source">
 from cardiff_drone import Drone
-drone = Drone(level = {{level['id']}})
+drone = Drone(maps[{{level['id']-1}}])
 
 # Enter your code here
     </textarea>
@@ -42,12 +43,16 @@ drone = Drone(level = {{level['id']}})
         <p>The drone starts at position (<span id="drone_start"></span>) facing <span id="drone_start_angle"></span>.</p>
         <h3>Finish position</h3>
         <p>Get the drone to position (<span id="drone_finish"></span>) to finish.
-        <h3>Items available</h3>
-        <p>The following items are available for collection:</p>
-        <ul id="available_items"></ul>
-        <h3>Items needed to finish</h3>
-        <p>You need to collect the following items before finishing:</p>
-        <ul id="finish_items"></ul>    
+        <div id="available_items_info">
+            <h3>Items available</h3>
+            <p>The following items are available for collection:</p>
+            <ul id="available_items"></ul>
+        </div>
+        <div id="finish_items_info">
+            <h3>Items needed to finish</h3>
+            <p>You need to collect the following items before finishing:</p>
+            <ul id="finish_items"></ul>    
+        </div>
     </div>
     <div class="clear"></div>
 </section>
@@ -73,8 +78,24 @@ drone = Drone(level = {{level['id']}})
             submit_code({{level['id']}});
         });
     });
+
+    function analyse_cell(cell){
+        $("#map .tile").removeClass("selected");
+        cell.addClass("selected");
+        $("#cell_info").html('('+cell.attr('data-x')+','+cell.attr('data-y')+'):<br /> ');
+        if(cell.attr("data-obstacle") != "" && cell.attr("data-obstacle") != null){
+            var heights = cell.attr("data-obstacle");
+            $("#cell_info").append(' - obstacle at height(s): '+heights+'<br />');
+        }
+        if(cell.hasClass('spawn')){
+            $("#cell_info").append(' - spawn point<br />');
+        }
+        if(cell.hasClass('finish')){
+            $("#cell_point").append(' - finish point<br />');
+        }
+    }
         
-    function refresh_ui(){
+    function draw_ui(){
         $("#drone_start").html(start_tile[0]+","+start_tile[1]+","+start_tile[2]);
         $("#drone_start_angle").html(start_tile[3]+"&deg;  from North");
         $("#drone_finish").html(finish_tile[0]+","+finish_tile[1]+","+finish_tile[2]);
@@ -91,7 +112,18 @@ drone = Drone(level = {{level['id']}})
         tile_height = 100/map_size[1];
         for(var i = 0; i < map_size[0]; i++){
             for(var j = 0; j < map_size[1];j++){
-                $("#map").append('<div data-x="'+(i+1)+'" data-y="'+(j+1)+'" class="tile" style="width:'+tile_width+'%;height:'+tile_height+'%;left:'+(tile_width*i)+'%;top:'+(tile_height*j)+'%;"></div');
+                var obstacles_here = [];
+                for(var k = 0; k < obstacles.length; k++){
+                    if(obstacles[k][0]==(i+1) && obstacles[k][1]==(j+1)){
+                        obstacles_here.push(obstacles[k][2]);
+                    }
+                }
+                var t = '<div data-obstacles="'+obstacles_here.join()+'"data-x="'+(i+1)+'" data-y="'+(j+1)+'" style="width:'+tile_width+'%;height:'+tile_height+'%;left:'+(tile_width*i)+'%;top:'+(tile_height*j)+'%;" class="tile';
+                if(obstacles_here.length > 0){t = t+' obstacle ';}
+                if(finish_tile[0]==(i+1) && finish_tile[1]==(j+1)){t = t+' finish ';}
+                if(start_tile[0]==(i+1) && start_tile[1]==(j+1)){t = t+' spawn ';}
+                t = t+'"></div';
+                $("#map").append(t);
             }
         }
         for(var i = 1; i <= map_size[0]; i++){
@@ -104,29 +136,41 @@ drone = Drone(level = {{level['id']}})
         for(var i = 9; i >= 0; i--){
             $("#altimeter").append('<div data-level="'+i+'" class="level" style="top:'+(9*(9-i))+'%;"><div class="measure">'+i+'</div></div>');
         }
+        $("#altimeter").append('<div class="current_level"></div>');
 
         $("#map").append("<div id='drone'></div>");
         draw_drone(); 
+        $("#map .tile").click(function(){
+            analyse_cell($(this));
+        });
     }
 
     function draw_drone(){
-        $("#drone").css({"width":tile_width+'%','height':tile_height+'%','left':(tile_width*(drone.x-1))+'%','top':(tile_height*(drone.y-1))+'%'});
-        $("#altimeter .level").removeClass("selected");
-        $("#altimeter .level").each(function(){
-            if(parseInt($(this).attr("data-level")) == drone.z){
-                $(this).addClass("selected");
+        $("#drone").removeClass("crashed");
+        $("#drone").animate({width:tile_width+'%',height:tile_height+'%',left:(tile_width*(drone.x-1))+'%',top:(tile_height*(drone.y-1))+'%'},400, function(){
+            if(drone.status_label == "Crashed"){
+                $("#drone").addClass("crashed");
             }
         });
+    
+        $("#altimeter .current_level").animate({'top':(9*(9-drone.z))+'%'},500, "easeOutBounce");
+
         $("#current_position").html(drone.x+','+drone.y);
         $("#current_altitude").html(drone.z);
         $("#current_bearing").html(drone.a+'&deg; from North');
-        console.log(drone.inventory);
         $("#current_inventory").html('');
         for(var i = 0; i < drone.inventory.length; i++){
             $("#current_inventory").append('<li>'+drone.inventory[i]+'</li>');
         }
         $("#status").removeClass("green").removeClass("red").addClass(drone.status);
         $("#status_label").html(drone.status_label);
+
+        if(finish_items.length == 0){
+            $("#finish_items_info").css({'display':'none'});
+        }
+        if(items.length == 0){
+            $("#available_items_info").css({'display':'none'});
+        }
     }
 
     function get_map(map_id){
@@ -140,12 +184,14 @@ drone = Drone(level = {{level['id']}})
             start_tile = data.start;
             map_size = data.size;
             drone = new Drone(start_tile[0],start_tile[1],start_tile[2],start_tile[3]);
-            refresh_ui();
+            draw_ui();
         });
     }
 
     function submit_code(map_id){
         $("#run").fadeOut();
+        drone.status = "green";
+        drone.status_label = "Ready";
         var postdata = {};
         postdata.code = $(".drone_source").val();
         $.post("/run_drone/"+map_id, postdata, function(data){
@@ -162,7 +208,9 @@ drone = Drone(level = {{level['id']}})
     }
 
     function iterate_moves(moves, move_count){
-        console.log("iterating "+move_count);
+        if(drone.status_label == "Finished"){
+            alert("Congratulations! You have completed the level.");
+        }
         var move = moves[move_count];
         if(move==null){$("#run").fadeIn();return;}
         setTimeout(function(){

@@ -409,16 +409,31 @@ ul.robot_list li .score{
     z-index: 3;
 }
 #map .tile.spawn{
+    background:rgb(100,100,100);
+    opacity:0.3;
+}
+#map .tile.finish{
     background:rgb(0,200,0);
+    opacity:0.3;
 }
 #map .tile.obstacle{
-    background:rgb(150,150,150);
+    background:rgb(150,0,0);
+    opacity:0.3;
 }
-#map #drone{
+#map .tile.selected{
+    background-color:yellow;
+    opacity:0.3; 
+}
+
+#drone{
     position:absolute;
     background:blue;
     z-index:4;
-    border-radius:50%;
+}
+#drone.crashed{
+    background-color:white;
+    background-image:url('/static/media/fire.gif');
+    background-size:cover;
 }
 
 #altimeter{
@@ -439,8 +454,12 @@ ul.robot_list li .score{
     left:-30px;
     top:0px;
 }
-#altimeter .level.selected{
+#altimeter .current_level{
     background:blue;
+    width:50%;
+    height:20px;
+    position:absolute;
+    left:30px;
 }
 
 #status{

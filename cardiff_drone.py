@@ -1,8 +1,8 @@
 import json
 
 class Drone:
-    def __init__(self, level=1):
-        self.map = self.get_map(level)
+    def __init__(self, m):
+        self.map = m
         self.finish = self.map['finish']
         self.obstacles = self.map['obstacles']
         self.x = self.map['start'][0]
@@ -17,18 +17,8 @@ class Drone:
         self.positions = [(self.x,self.y,self.z,self.a,self.status,self.inventory)]
 
     def __str__(self):
-        return 'Drone: ('+str(self.x)+','+str(self.y)+','+str(self.z)+')'
+        return 'Cardiff Drone: ('+str(self.x)+','+str(self.y)+','+str(self.z)+')'
 
-    def get_map(self, map_id):
-        f = open("maps.json", "r")
-        text = f.read()
-        maps = json.loads(text)['maps']
-        m = None
-        for map in maps:
-            if map['id'] == str(map_id):
-                m = map
-        return m  
-    
     def can_move(self):
         if self.crashed == True or self.finished == True or self.z == 0:
             return False
@@ -44,15 +34,13 @@ class Drone:
         if self.x < 1 or self.y < 1 or self.x > self.map['size'][0] or self.y > self.map['size'][1] or self.z > 9:
             self.crashed = True
             
-        finished = False
+        self.finished = False
         if self.map['finish'][0] == self.x and self.map['finish'][1] == self.y and self.map['finish'][2] == self.z:
-            finished = True
+            self.finished = True
             for i in self.map['finish_items']:
                  if i not in self.inventory:
-                    finished = False
+                    self.finished = False
                     break
-        if finished == True:
-            self.finished = True
 
         if self.finished == True:
             self.status = "Finished"
@@ -71,7 +59,6 @@ class Drone:
     def pick_up(self):
         for i in self.map['items']:
             if i['location'][0] == self.x and i['location'][1] == self.y and i['location'][2] == self.z:
-                print "adding item..."
                 self.inventory.append(i['name'])
                 self.map['items'].remove(i)
 
