@@ -7,11 +7,12 @@
         "start": [4,3,0,90],
         "size": [10,10],
         "fuel": 8,
-        "wind": { "towards": "N", "frequency": 1},
+        "wind": { "towards": "N", "frequency": 10},
         "ammo": 0,
         "finish_items": [],
         "items": [
-        ]
+        ],
+        "drone_visible": true 
     },
     {
         "name": "Obstacles!",
@@ -25,7 +26,8 @@
         "ammo": 0,
         "finish_items": [],
         "items": [
-        ]
+        ],
+        "drone_visible": true
     },
     {
         "name": "Recovery Position",
@@ -41,7 +43,38 @@
         "items": [
                 { "name": "crate", "location":  [9,8,0] },
                 { "name": "crashed UAV", "location":  [2,11,0] }
-        ]
+        ],
+        "drone_visible": true
+    },
+    {
+        "name": "Which way to go?",
+        "description": "Your positional sensors have been destroyed! Blindly make your way to the finish.",
+        "obstacles": [],
+        "finish": [8,4,0],
+        "fuel": 35,
+        "wind": { "towards": "N", "frequency": 100},
+        "start": [17,14,0,90],
+        "size": [20,20],
+        "ammo": 0,
+        "finish_items": [],
+        "items": [
+        ],
+        "drone_visible": false
+    },
+    {
+        "name": "If and while",
+        "description": "No tricks - just get to the finish ;)",
+        "obstacles": [],
+        "finish": [15,18,0],
+        "fuel": 35,
+        "wind": { "towards": "E", "frequency": "random"},
+        "start": [4,3,0,0],
+        "size": [20,20],
+        "ammo": 0,
+        "finish_items": [],
+        "items": [
+        ],
+        "drone_visible": true
     },
     {
         "name": "Frugal Droning",
@@ -57,6 +90,7 @@
         "items": [
                 { "name": "fuel (7)", "location":  [17,2,0] },
                 { "name": "fuel (10)", "location":  [10,19,0] }
-        ]
+        ],
+        "drone_visible": true
     }
 ]

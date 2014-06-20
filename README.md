@@ -56,6 +56,7 @@ This will cause the drone to look in its current area for any items. If it finds
 The Drone understands the following commands:
 - `takeoff()` - Lift the Drone off the ground.
 - `land()` - Land the drone in its current square.
+- `hover()` - Stay hovering in the current square and altitude.
 - `pick_up()` - Pick up items in the Drone's current square and altitude.
 - `move_forward()` - Move forward one square.
 - `move_backward()` - Move backward one square.
@@ -71,8 +72,10 @@ The Drone understands the following commands:
 - `y` - The current Y-coordinate.
 - `z` - The current height.
 - `a` - The current bearing angle.
+- `fuel` - The Drone's remaining fuel.
 - `inventory` - The list of items the Drone is holding.
 - `status` - The current status of the Drone (Ready, Landed, Flying, Crashed, etc.).
+- `map` - The Drone's knowledge of the map.
 
 
 ### Standard Python routines: 
@@ -98,6 +101,32 @@ You can, of course, combine multiple Python constructs. The following lines move
 if drone.status == "Flying":
     for i in range(3);
         drone.move_forward()
+```
+
+Python's `while` construct can also be useful repeating commands or checking for values. The following code moves the Drone to the right until it is in column 8, as long as it starts in a column to the left of this and `drone.a = 90`. 
+
+```
+while drone.x < 8:
+    drone.move_forward()
+```
+
+Multiple boolean expressions can be combined. The following snippet repeats the two functions until the drone is in cell (8,10) and also assumes `drone.a = 90`:
+
+```
+while drone.x < 8 and drone.y < 10:
+    drone.move_forward()
+    drone.move_right()
+```
+Be careful - if the Drone never arrives in cell (8,2), then the loop will still continue until the Drone crashes or runs out of fuel!
+
+All of Python's constructs can be nested. Loops can be exited prematurely using the `break` keyword. For example, to stop the previous command moving the Drone too far in *either* direction, use an 'ORd' if-statement inside your while-loop:
+
+```
+while drone.x < 8 and drone.y < 10:
+    if drone.x > 10 or drone.y > 12:
+        break
+    drone.move_forward()
+    drone.move_right()
 ```
 
 Functions allow you to bundle many commands into a single, callable, routine. For example, this function moves the drone 3 squares forward and turns right:
@@ -150,6 +179,8 @@ Maps can be managed directly through the `maps.json` file. Each map is rectangul
 - `ammo` - `int`: the initial ammo held by the drone (currently un-used but necessary for construction).
 - `items` - `[{item }]`: List of item objects. Each item should have a `name` (string) and `location` ([x,y,z]) attribute. Fuel is a valid collection item, and should be given a name like `fuel (x)`, where `x` is an integer representing the amount of fuel to be replenished upon collection.
 - `finish_items` - `[str]`: List of item names required to complete the level. All of the names in this array must be present in the `items` array.
+- `drone_visible` - `bool`: Set whether the drone and its sensors should be visible to the player on this map. (Setting to `false` requires the player to use the Drone's locational attributes to find their way).
+- `wind` - `{wind}`: Set the map's wind as an object containing the keys `towards` (values: "N", "E", "S", "W") and `frequency` (`int` or "random"). Setting the `frequency` to "random" causes a frequency to be generated randomly betwen 1-5 on each turn. A `frequency` of 1 means that the wind effect is applied every turn, a value of 2 applies every other turn, and so on. If you don't want to apply wind, just set `frequency` to a high number.  Wind moves the Drone one square towards the direction given by `towards`.
  
 Note that the Drone will crash if it leaves the map's bounds or if it flies higher than z=9. Therefore, keep relevant items and the finish and start squares to a lower height.
 

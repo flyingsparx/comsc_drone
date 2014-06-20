@@ -46,6 +46,7 @@ def complete_level(map_number, map_name, code_lines):
 def home():
     validate_session()
     levels = app.maps 
+    print session['levels_complete']
     return render_template('dashboard.html', levels=levels, complete_levels=complete_levels, num_levels=len(levels), num_completed_levels=len(complete_levels))
 
 @app.route('/level/<map_number>')

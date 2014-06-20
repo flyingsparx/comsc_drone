@@ -41,12 +41,14 @@ drone = Drone(maps[{{level['id']-1}}])
     <div class="half">
         <h2>Mission information</h2>
         <p id="map_desc"></p>
-        <h3>Starting position</h3>
-        <p>The drone starts at position (<span id="drone_start"></span>) facing <span id="drone_start_angle"></span>.</p>
+        <div id="starting_info">
+            <h3>Starting position</h3>
+            <p>The drone starts at position (<span id="drone_start"></span>) facing <span id="drone_start_angle"></span>.</p>
+        </div>
         <h3>Finish position</h3>
         <p>Get the drone to position (<span id="drone_finish"></span>) to finish.
         <h3>Wind</h3>
-        <p>Wind will blow to <span id="wind_direction"></span> every <span id="wind_frequency"></span> Drone move(s).
+        <p>Wind will blow to <span id="wind_direction"></span> <span id="wind_frequency"></span>.
         <div id="available_items_info">
             <h3>Items available</h3>
             <p>The following items can be collected:</p>
@@ -64,7 +66,7 @@ drone = Drone(maps[{{level['id']-1}}])
 {% endblock %}
 {% block scripts %}
 <script>
-    var obstacles, items, finish_items, finish_tile, start_tile, map_size, drone, tile_width, tile_height, selected_cell, map_desc, wind;
+    var obstacles, items, finish_items, finish_tile, start_tile, map_size, drone, tile_width, tile_height, selected_cell, map_desc, wind, map;
 
     function Drone(x,y,z,a,fuel){
         this.x = x;
@@ -117,8 +119,17 @@ drone = Drone(maps[{{level['id']-1}}])
     }
         
     function draw_ui(){
-        $("#drone_start").html(start_tile[0]+","+start_tile[1]+","+start_tile[2]);
-        $("#drone_start_angle").html(start_tile[3]+"&deg;  from North");
+        if(map.drone_visible == true){
+            $("#drone_start").html(start_tile[0]+","+start_tile[1]+","+start_tile[2]);
+            $("#drone_start_angle").html(start_tile[3]+"&deg;  from North");
+        }
+        
+        if(finish_items.length == 0){
+            $("#finish_items_info").css({'display':'none'});
+        }
+        if(items.length == 0){
+            $("#available_items_info").css({'display':'none'});
+        }
         $("#drone_finish").html(finish_tile[0]+","+finish_tile[1]+","+finish_tile[2]);
         for(var i = 0; i < items.length; i++){
             var item = items[i];
@@ -142,7 +153,7 @@ drone = Drone(maps[{{level['id']-1}}])
                 var t = '<div data-obstacles="'+obstacles_here.join()+'"data-x="'+(i+1)+'" data-y="'+(j+1)+'" style="width:'+tile_width+'%;height:'+tile_height+'%;left:'+(tile_width*i)+'%;top:'+(tile_height*j)+'%;" class="tile';
                 if(obstacles_here.length > 0){t = t+' obstacle ';}
                 if(finish_tile[0]==(i+1) && finish_tile[1]==(j+1)){t = t+' finish ';}
-                if(start_tile[0]==(i+1) && start_tile[1]==(j+1)){t = t+' spawn ';}
+                if(start_tile[0]==(i+1) && start_tile[1]==(j+1) && map.drone_visible == true){t = t+' spawn ';}
                 t = t+'"></div';
                 $("#map").append(t);
             }
@@ -167,10 +178,32 @@ drone = Drone(maps[{{level['id']-1}}])
         $("#map_desc").html(map_desc);
 
         $("#wind_direction").html(wind.towards);
-        $("#wind_frequency").html(wind.frequency);
+        if(wind.frequency == "random"){
+            $("#wind_frequency").html("randomly");
+        }else{
+            $("#wind_frequency").html(wind.frequency+" every Drone move(s)");
+        }
     }
 
     function draw_drone(){
+        $("#current_fuel").html(drone.fuel);
+        $("#current_inventory").html('');
+        for(var i = 0; i < drone.inventory.length; i++){
+            $("#current_inventory").append('<li>'+drone.inventory[i]+'</li>');
+        }
+        if(drone.inventory.length == 0){$("#current_inventory").html('Empty');}
+        $("#status").removeClass("green").removeClass("red").addClass(drone.status);
+        $("#status_label").html(drone.status_label);
+        // If invisible drone, show no more:
+        if(map.drone_visible == false){
+            $("p.position").css({'display':'none'});
+            $("p.altitude").css({'display':'none'});
+            $("p.bearing").css({'display':'none'});
+            $("#altimeter .current_level").css({'display':'none'});
+            $("#starting_info").css({'display':'none'});
+            $("#cell_info").css({'display':'none'});
+            return;
+        }
         $("#drone").removeClass("crashed");
         $("#drone").animate({width:tile_width+'%',height:tile_height+'%',left:(tile_width*(drone.x-1))+'%',top:(tile_height*(drone.y-1))+'%'},400, function(){
             if(drone.status_label == "Crashed"){
@@ -181,29 +214,16 @@ drone = Drone(maps[{{level['id']-1}}])
         $("#altimeter .current_level").animate({'top':(9*(9-drone.z))+'%'},500, "easeOutBounce");
 
         $("#current_position").html(drone.x+','+drone.y);
-        $("#current_fuel").html(drone.fuel);
         $("#current_altitude").html(drone.z);
         $("#current_bearing").html(drone.a+'&deg; from North');
-        $("#current_inventory").html('');
-        for(var i = 0; i < drone.inventory.length; i++){
-            $("#current_inventory").append('<li>'+drone.inventory[i]+'</li>');
-        }
-        if(drone.inventory.length == 0){$("#current_inventory").html('Empty');}
-        $("#status").removeClass("green").removeClass("red").addClass(drone.status);
-        $("#status_label").html(drone.status_label);
-
-        if(finish_items.length == 0){
-            $("#finish_items_info").css({'display':'none'});
-        }
-        if(items.length == 0){
-            $("#available_items_info").css({'display':'none'});
-        }
+        
         analyse_cell(selected_cell);
     }
 
     function get_map(map_id){
         $.get("/level/"+map_id+"/json", function(data){
             data = JSON.parse(data);
+            map = data;
             console.log(data);
             obstacles = data.obstacles
             items = data.items;

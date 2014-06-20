@@ -1,3 +1,5 @@
+import random
+
 class Drone:
     def __init__(self, m):
         self.map = m
@@ -46,15 +48,27 @@ class Drone:
                 self.z = 0
                 self.crashed = True
 
-        if self.moves % self.map['wind']['frequency'] == 0:
-            if self.map['wind']['towards'] == 'N':
-                self.y-=1
-            if self.map['wind']['towards'] == 'E':
-                self.x+=1       
-            if self.map['wind']['towards'] == 'S':
-                self.y+=1
-            if self.map['wind']['towards'] == 'W':
-                self.x-=1 
+        if type(self.map['wind']['frequency']) == 'int':
+            if self.moves % self.map['wind']['frequency'] == 0:
+                if self.map['wind']['towards'] == 'N':
+                    self.y-=1
+                if self.map['wind']['towards'] == 'E':
+                    self.x+=1       
+                if self.map['wind']['towards'] == 'S':
+                    self.y+=1
+                if self.map['wind']['towards'] == 'W':
+                    self.x-=1 
+        elif self.map['wind']['frequency'] == 'random':
+            amount = int(random.random()*4)+1
+            if self.moves % amount == 0:
+                if self.map['wind']['towards'] == 'N':
+                    self.y-=1
+                if self.map['wind']['towards'] == 'E':
+                    self.x+=1       
+                if self.map['wind']['towards'] == 'S':
+                    self.y+=1
+                if self.map['wind']['towards'] == 'W':
+                    self.x-=1 
     
         if self.finished == True:
             self.status = "Finished"
@@ -94,6 +108,12 @@ class Drone:
             self.z = 0
             self.fuel -= 1
             self.moves+=1
+            self.get_state()
+
+    def hover(self):
+        if self.can_move():
+            self.moves+=1
+            self.fuel -= 1
             self.get_state()
 
     def move_up(self):
