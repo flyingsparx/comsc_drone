@@ -428,7 +428,7 @@ ul.robot_list li .score{
 #drone{
     position:absolute;
     background:blue;
-    z-index:4;
+    z-index:2;
 }
 #drone.crashed{
     background-color:white;

@@ -1,5 +1,3 @@
-import json
-
 class Drone:
     def __init__(self, m):
         self.map = m
@@ -9,7 +7,7 @@ class Drone:
         self.y = self.map['start'][1]
         self.z = self.map['start'][2]
         self.a = self.map['start'][3]
-        self.ammo = 10
+        self.ammo = self.map['ammo'] 
         self.inventory = []
         self.crashed = False
         self.finished = False
