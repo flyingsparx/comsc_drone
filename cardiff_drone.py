@@ -47,18 +47,8 @@ class Drone:
             if self.fuel == 0:
                 self.z = 0
                 self.crashed = True
-
-        if type(self.map['wind']['frequency']) == 'int':
-            if self.moves % self.map['wind']['frequency'] == 0:
-                if self.map['wind']['towards'] == 'N':
-                    self.y-=1
-                if self.map['wind']['towards'] == 'E':
-                    self.x+=1       
-                if self.map['wind']['towards'] == 'S':
-                    self.y+=1
-                if self.map['wind']['towards'] == 'W':
-                    self.x-=1 
-        elif self.map['wind']['frequency'] == 'random':
+       
+        if self.map['wind']['frequency'] == 'random':
             amount = int(random.random()*4)+1
             if self.moves % amount == 0:
                 if self.map['wind']['towards'] == 'N':
@@ -69,7 +59,17 @@ class Drone:
                     self.y+=1
                 if self.map['wind']['towards'] == 'W':
                     self.x-=1 
-    
+        else:
+            if self.moves % self.map['wind']['frequency'] == 0:
+                if self.map['wind']['towards'] == 'N':
+                    self.y-=1
+                if self.map['wind']['towards'] == 'E':
+                    self.x+=1       
+                if self.map['wind']['towards'] == 'S':
+                    self.y+=1
+                if self.map['wind']['towards'] == 'W':
+                    self.x-=1 
+
         if self.finished == True:
             self.status = "Finished"
         elif self.crashed == True:

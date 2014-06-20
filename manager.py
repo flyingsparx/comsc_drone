@@ -96,7 +96,7 @@ def run_drone(map_number):
     
 # Main code
 if __name__ == '__main__':
-    app.debug = True
+    #app.debug = True
     app.maps = load_maps()
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
