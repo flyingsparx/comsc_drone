@@ -103,7 +103,7 @@ if drone.status == "Flying":
 Functions allow you to bundle many commands into a single, callable, routine. For example, this function moves the drone 3 squares forward and turns right:
 
 ```
-function my_function():
+def my_function():
     for i in range(3):
         drone.move_forwards()
     drone.turn_right()
