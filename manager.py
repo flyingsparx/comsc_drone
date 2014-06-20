@@ -88,7 +88,8 @@ def run_drone(map_number):
         return_obj['result'] = moves
         return_obj['error'] = False
         return json.dumps(return_obj)
-    except:
+    except Exception as e:
+        print e
         return_obj['error'] = True
         return json.dumps(return_obj)
     

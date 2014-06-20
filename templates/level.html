@@ -18,10 +18,11 @@
             <div id="status"></div> <p id="status_label"></p>
             <div class="clear"></div>
             <hr />
-            <p>Position: (<span id="current_position"></span>)</p>
-            <p>Altitude: <span id="current_altitude"></span></p>
-            <p>Bearing: <span id="current_bearing"></span></p>
-            <p>Inventory:</p>
+            <p class="info position">(<span id="current_position"></span>)</p>
+            <p class="info altitude"><span id="current_altitude"></span></p>
+            <p class="info fuel"><span id="current_fuel"></span></p>
+            <p class="info bearing"><span id="current_bearing"></span></p>
+            <p class="info inventory"></p>
             <ul id="current_inventory"></ul>
         </div>
     </div>
@@ -35,14 +36,17 @@ drone = Drone(maps[{{level['id']-1}}])
 
 # Enter your code here
     </textarea>
-        <button id="run">Run code</button>
+        <button id="run" class="run">Run code</button>
         </div>
     <div class="half">
         <h2>Mission information</h2>
+        <p id="map_desc"></p>
         <h3>Starting position</h3>
         <p>The drone starts at position (<span id="drone_start"></span>) facing <span id="drone_start_angle"></span>.</p>
         <h3>Finish position</h3>
         <p>Get the drone to position (<span id="drone_finish"></span>) to finish.
+        <h3>Wind</h3>
+        <p>Wind will blow to <span id="wind_direction"></span> every <span id="wind_frequency"></span> Drone move(s).
         <div id="available_items_info">
             <h3>Items available</h3>
             <p>The following items can be collected:</p>
@@ -60,13 +64,14 @@ drone = Drone(maps[{{level['id']-1}}])
 {% endblock %}
 {% block scripts %}
 <script>
-    var obstacles, items, finish_items, finish_tile, start_tile, map_size, drone, tile_width, tile_height, selected_cell;
+    var obstacles, items, finish_items, finish_tile, start_tile, map_size, drone, tile_width, tile_height, selected_cell, map_desc, wind;
 
-    function Drone(x,y,z,a){
+    function Drone(x,y,z,a,fuel){
         this.x = x;
         this.y = y;
         this.z = z;
         this.a = a;
+        this.fuel = fuel;
         this.inventory = [];
         this.status = "green";
         this.status_label = "Landed";
@@ -159,6 +164,10 @@ drone = Drone(maps[{{level['id']-1}}])
         $("#map .tile").click(function(){
             analyse_cell($(this));
         });
+        $("#map_desc").html(map_desc);
+
+        $("#wind_direction").html(wind.towards);
+        $("#wind_frequency").html(wind.frequency);
     }
 
     function draw_drone(){
@@ -172,12 +181,14 @@ drone = Drone(maps[{{level['id']-1}}])
         $("#altimeter .current_level").animate({'top':(9*(9-drone.z))+'%'},500, "easeOutBounce");
 
         $("#current_position").html(drone.x+','+drone.y);
+        $("#current_fuel").html(drone.fuel);
         $("#current_altitude").html(drone.z);
         $("#current_bearing").html(drone.a+'&deg; from North');
         $("#current_inventory").html('');
         for(var i = 0; i < drone.inventory.length; i++){
             $("#current_inventory").append('<li>'+drone.inventory[i]+'</li>');
         }
+        if(drone.inventory.length == 0){$("#current_inventory").html('Empty');}
         $("#status").removeClass("green").removeClass("red").addClass(drone.status);
         $("#status_label").html(drone.status_label);
 
@@ -200,7 +211,9 @@ drone = Drone(maps[{{level['id']-1}}])
             finish_tile = data.finish;
             start_tile = data.start;
             map_size = data.size;
-            drone = new Drone(start_tile[0],start_tile[1],start_tile[2],start_tile[3]);
+            map_desc = data.description;
+            wind = data.wind;
+            drone = new Drone(start_tile[0],start_tile[1],start_tile[2],start_tile[3],data.fuel);
             draw_ui();
         });
     }
@@ -213,7 +226,6 @@ drone = Drone(maps[{{level['id']-1}}])
         postdata.code = $(".drone_source").val();
         $.post("/run_drone/"+map_id, postdata, function(data){
             data = JSON.parse(data);
-            console.log(data);
             if(data.error == true){
                 $("#run").fadeIn();
                 alert("Oops - there is an error in your Python code. Have a check through.");
@@ -235,6 +247,7 @@ drone = Drone(maps[{{level['id']-1}}])
             drone.y = move[1];
             drone.z = move[2];                
             drone.a = move[3];
+            drone.fuel = move[6];
             drone.status_label = move[4];
             if(move[4] == "Crashed"){
                 drone.status = "red";

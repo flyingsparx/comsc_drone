@@ -145,9 +145,10 @@ Maps can be managed directly through the `maps.json` file. Each map is rectangul
 - `obstacles` - `[[x,y,z]]`: a list of 3D coordinate lists. e.g. `"obstacles": [[1,1,0],[1,1,1]]` creates two obstacles at x=1,y=1 at different heights.
 - `finish` - `[x,y,z]`: the 3D (x,y,z) coordinate of the finish square.
 - `start` - `[x,y,z,a]`: the 3D coordinate of the start sqaure and the initial direction the Drone faces (90,180,270,0).
+- `fuel` - `int`: the amount of fuel the Drone is initially given.
 - `size` - `[w,h]`: the width and height of the map.
-- `ammo` - `int`: The initial ammo held by the drone (currently un-used but necessary for construction).
-- `items` - `[{item }]`: List of item objects. Each item should have a `name` (string) and `location` ([x,y,z]) attribute.
+- `ammo` - `int`: the initial ammo held by the drone (currently un-used but necessary for construction).
+- `items` - `[{item }]`: List of item objects. Each item should have a `name` (string) and `location` ([x,y,z]) attribute. Fuel is a valid collection item, and should be given a name like `fuel (x)`, where `x` is an integer representing the amount of fuel to be replenished upon collection.
 - `finish_items` - `[str]`: List of item names required to complete the level. All of the names in this array must be present in the `items` array.
  
 Note that the Drone will crash if it leaves the map's bounds or if it flies higher than z=9. Therefore, keep relevant items and the finish and start squares to a lower height.
