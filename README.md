@@ -103,20 +103,23 @@ if drone.status == "Flying":
 Functions allow you to bundle many commands into a single, callable, routine. For example, this function moves the drone 3 squares forward and turns right:
 
 ```
-function my_function(drone):
+function my_function():
     for i in range(3):
         drone.move_forwards()
     drone.turn_right()
 ```
 Place functions above your own code (but below the automatically generated code), and then you can run them when you need to:
-    my_function(drone)
+
+```
+my_function()
+```
 Now this one line of code executes all of the commands inside the function `my_function` every time it is called.
 
 ## Installation and usage
 First, ensure an installation of Python 2.\* is present on your target system. In many cases, this can be achieved by downloading an installer from [Python's website](https://www.python.org). If under GNU/Linux, Python should be available in your distribution's repositories. For example, under Arch Linux:
 
 ```
-    # pacman -S python2
+# pacman -S python2
 ```
 Next, ensure the following Python dependencies are satisfied:
 - `flask`
